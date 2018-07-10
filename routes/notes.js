@@ -16,7 +16,6 @@ router.get('/', (req, res, next) => {
     filter.content = {$regex: searchTerm};
     return Note.find({$or: [{title: filter.title}, {content: filter.content}]}).sort({ updatedAt: 'desc' })     
       .then(results => {
-        console.log(results);
         return results;
       })
       .then(result => {
@@ -32,7 +31,6 @@ router.get('/', (req, res, next) => {
   }
   return Note.find().sort({ updatedAt: 'desc' })     
     .then(results => {
-      console.log(results);
       return results;
     })
     .then(result => {
@@ -54,7 +52,6 @@ router.get('/:id', (req, res, next) => {
   const id = req.params.id;
   return Note.findById(id)
     .then(results => {
-      console.log(results);
       return results;
     })
     .then(result => {
