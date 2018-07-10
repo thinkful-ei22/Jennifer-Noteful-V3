@@ -1,50 +1,116 @@
 'use strict';
 
 const express = require('express');
-
+const Note = require('../models/notes');
 const router = express.Router();
 
 /* ========== GET/READ ALL ITEMS ========== */
 router.get('/', (req, res, next) => {
-
-  console.log('Get All Notes');
-  res.json([
-    { id: 1, title: 'Temp 1' },
-    { id: 2, title: 'Temp 2' },
-    { id: 3, title: 'Temp 3' }
-  ]);
-
+   
+  const {searchTerm} = req.query;
+  
+  let filter = {};
+  
+  if (searchTerm) {
+    filter.title = { $regex: searchTerm };
+    console.log(filter);
+  }
+  return Note.find(filter).sort({ updatedAt: 'desc' })    
+    .then(results => {
+      console.log(results);
+      return results;
+    })
+    .then(result => {
+      if(result){
+        res.json(result);
+      }else{
+        next();
+      }
+    })
+    .catch(err => {
+      next(err);
+    });
 });
+
 
 /* ========== GET/READ A SINGLE ITEM ========== */
 router.get('/:id', (req, res, next) => {
-
-  console.log('Get a Note');
-  res.json({ id: 1, title: 'Temp 1' });
-
+ 
+  const id = req.params.id;
+  return Note.findById(id)
+    .then(results => {
+      console.log(results);
+      return results;
+    })
+    .then(result => {
+      if (result) {
+        res.json(result);
+      } else {
+        next();
+      }
+    })
+    .catch(err => {
+      next(err);
+    });
 });
 
 /* ========== POST/CREATE AN ITEM ========== */
 router.post('/', (req, res, next) => {
+  const {title, content} = req.body;
+  const newNote = {
+    title: title, 
+    content: content, 
+  };
+  if (!newNote.title) {
+    const err = new Error('Missing `title` in request body');
+    err.status = 400;
+    return next(err);
+  }
 
-  console.log('Create a Note');
-  res.location('path/to/new/document').status(201).json({ id: 2, title: 'Temp 2' });
-
+  return Note.create(newNote)
+    .then(results => {
+      if (results){
+        res.location(`${req.originalUrl}/${res.id}`).status(201).json(results);
+      } else {
+        next();
+      }
+    })
+    .catch(err => next(err));
 });
 
 /* ========== PUT/UPDATE A SINGLE ITEM ========== */
 router.put('/:id', (req, res, next) => {
+  const id = req.params.id;
+  const {title, content} = req.body;
+  const updatedNote = {
+    title: title, 
+    content: content, 
+  };
+  if (!updatedNote.title) {
+    const err = new Error('Missing `title` in request body');
+    err.status = 400;
+    return next(err);
+  }
 
-  console.log('Update a Note');
-  res.json({ id: 1, title: 'Updated Temp 1' });
-
+  return Note.findByIdAndUpdate(id, updatedNote)
+    .then(results => {
+      if (results){
+        res.json(results);
+      } else {
+        next();
+      }
+    })
+    .catch(err => next(err));
 });
 
 /* ========== DELETE/REMOVE A SINGLE ITEM ========== */
 router.delete('/:id', (req, res, next) => {
 
-  console.log('Delete a Note');
-  res.status(204).end();
+  const id = req.params.id;
+  return Note.findByIdAndRemove(id)
+    .then(()=>{
+      res.status(204).end();
+    });
 });
 
 module.exports = router;

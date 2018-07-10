@@ -4,7 +4,6 @@ const express = require('express');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 const { PORT, MONGODB_URI } = require('./config');
-
 const notesRouter = require('./routes/notes');
 
 // Create an Express application
@@ -50,6 +49,7 @@ if (process.env.NODE_ENV !== 'test') {
     console.error(err);
   });
 }
+// Connect to DB and Listen for incoming connections
 mongoose.connect(MONGODB_URI)
   .then(instance => {
     const conn = instance.connections[0];
@@ -66,4 +66,5 @@ app.listen(PORT, function () {
 }).on('error', err => {
   console.error(err);
 });
+
 module.exports = app; // Export for testing
