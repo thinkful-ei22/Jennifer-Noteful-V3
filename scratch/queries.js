@@ -8,14 +8,15 @@ const Note = require('../models/notes');
 // Find/Search for notes using Note.find
 // mongoose.connect(MONGODB_URI)
 //   .then(() => {
-//     const searchTerm = 'Lady Gaga';
+//     const searchTerm = 'Lorem';
 //     let filter = {};
 
 //     if (searchTerm) {
 //       filter.title = { $regex: searchTerm };
+//       filter.content = {$regex: searchTerm};
 //     }
 
-//     return Note.find(filter).sort({ updatedAt: 'desc' });
+//     return Note.find({$or: [{title: filter.title}, {content: filter.content}]}).sort({ updatedAt: 'desc' });
 //   })    
 //   .then(results => {
 //     console.log(results);

@@ -13,9 +13,10 @@ router.get('/', (req, res, next) => {
   
   if (searchTerm) {
     filter.title = { $regex: searchTerm };
-    console.log(filter);
+    filter.content = {$regex: searchTerm};
   }
-  return Note.find(filter).sort({ updatedAt: 'desc' })    
+    
+  return Note.find({$or: [{title: filter.title}, {content: filter.content}]}).sort({ updatedAt: 'desc' })     
     .then(results => {
       console.log(results);
       return results;
