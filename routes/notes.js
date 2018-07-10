@@ -14,9 +14,23 @@ router.get('/', (req, res, next) => {
   if (searchTerm) {
     filter.title = { $regex: searchTerm };
     filter.content = {$regex: searchTerm};
+    return Note.find({$or: [{title: filter.title}, {content: filter.content}]}).sort({ updatedAt: 'desc' })     
+      .then(results => {
+        console.log(results);
+        return results;
+      })
+      .then(result => {
+        if(result){
+          res.json(result);
+        }else{
+          next();
+        }
+      })
+      .catch(err => {
+        next(err);
+      });
   }
-    
-  return Note.find({$or: [{title: filter.title}, {content: filter.content}]}).sort({ updatedAt: 'desc' })     
+  return Note.find().sort({ updatedAt: 'desc' })     
     .then(results => {
       console.log(results);
       return results;
@@ -67,7 +81,6 @@ router.post('/', (req, res, next) => {
     err.status = 400;
     return next(err);
   }
-
   return Note.create(newNote)
     .then(results => {
       if (results){
