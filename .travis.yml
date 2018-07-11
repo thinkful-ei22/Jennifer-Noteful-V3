@@ -1,2 +1,8 @@
 language: node_js
 node_js: node
+deploy:
+  provider: heroku
+  api_key: e0281d26-1e26-4656-b4f0-164f63590ff5
+  app: jennifer-noteful-v3
+  on:
+    repo: thinkful-ei22/Jennifer-Noteful-V3
