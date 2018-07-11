@@ -52,7 +52,7 @@ router.get('/:id', (req, res, next) => {
  
   const id = req.params.id;
   if(!(mongoose.Types.ObjectId.isValid(id))){
-    return next('');
+    return next('.');
   }
   return Note.findById(id)
     .then(result => {
