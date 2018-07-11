@@ -3,7 +3,7 @@
 const express = require('express');
 const Note = require('../models/notes');
 const router = express.Router();
-// const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
 /* ========== GET/READ ALL ITEMS ========== */
 router.get('/', (req, res, next) => {
@@ -51,9 +51,9 @@ router.get('/', (req, res, next) => {
 router.get('/:id', (req, res, next) => {
  
   const id = req.params.id;
-  // if(!(mongoose.Types.ObjectId.isValid(id))){
-  //   return next('error');
-  // }
+  if(!(mongoose.Types.ObjectId.isValid(id))){
+    return next();
+  }
   return Note.findById(id)
     .then(result => {
       if (result) {
