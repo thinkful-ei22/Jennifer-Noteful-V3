@@ -51,9 +51,6 @@ router.get('/:id', (req, res, next) => {
  
   const id = req.params.id;
   return Note.findById(id)
-    .then(results => {
-      return results;
-    })
     .then(result => {
       if (result) {
         res.json(result);
