@@ -1,39 +1,14 @@
 'use strict';
 
 const express = require('express');
-const Note = require('../models/notes');
+const Folder = require('../models/folders');
 const router = express.Router();
 const mongoose = require('mongoose');
 
-/* ========== GET/READ ALL ITEMS ========== */
+// GET all /folders
+//sort by name
 router.get('/', (req, res, next) => {
-   
-  const {searchTerm} = req.query;
-  
-  let filter = {};
-  
-  if (searchTerm) {
-    filter.title = { $regex: searchTerm };
-    filter.content = {$regex: searchTerm};
-    return Note.find({$or: [{title: filter.title}, {content: filter.content}]}).sort({ updatedAt: 'desc' })     
-      .then(results => {
-        return results;
-      })
-      .then(result => {
-        if(result){
-          res.json(result);
-        }else{
-          next();
-        }
-      })
-      .catch(err => {
-        next(err);
-      });
-  }
-  return Note.find().sort({ updatedAt: 'desc' })     
-    .then(results => {
-      return results;
-    })
+  return Folder.find().sort({ name: 'asc' })     
     .then(result => {
       if(result){
         res.json(result);
@@ -45,9 +20,9 @@ router.get('/', (req, res, next) => {
       next(err);
     });
 });
-
-
-/* ========== GET/READ A SINGLE ITEM ========== */
+// GET /folders by id
+// Validate the id is a Mongo ObjectId
+// Conditionally return a 200 response or a 404 Not Found
 router.get('/:id', (req, res, next) => {
  
   const id = req.params.id;
@@ -56,7 +31,7 @@ router.get('/:id', (req, res, next) => {
     err.status = 400;
     return next(err);
   }
-  return Note.findById(id)
+  return Folder.findById(id)
     .then(result => {
       if (result) {
         res.json(result);
@@ -68,20 +43,21 @@ router.get('/:id', (req, res, next) => {
       next(err);
     });
 });
-
-/* ========== POST/CREATE AN ITEM ========== */
+// POST /folders to create a new folder
+// Validate the incoming body has a name field
+// Respond with a 201 status and location header
+// Catch duplicate key error code 11000 and respond with a helpful error message (see below for sample code)
 router.post('/', (req, res, next) => {
-  const {title, content} = req.body;
-  const newNote = {
-    title: title, 
-    content: content, 
+  const {name} = req.body;
+  const newFolder = {
+    name: name 
   };
-  if (!newNote.title) {
-    const err = new Error('Missing `title` in request body');
+  if (!newFolder.name) {
+    const err = new Error('Missing `name` in request body');
     err.status = 400;
     return next(err);
   }
-  return Note.create(newNote)
+  return Folder.create(newFolder)
     .then(results => {
       if (results){
         res.location(`${req.originalUrl}/${res.id}`).status(201).json(results);
@@ -91,28 +67,28 @@ router.post('/', (req, res, next) => {
     })
     .catch(err => {
       if (err.code === 11000) {
-        err = new Error('The note title already exists');
+        err = new Error('The folder name already exists');
         err.status = 400;
       }
       next(err);
     });
 });
-
-/* ========== PUT/UPDATE A SINGLE ITEM ========== */
+// PUT /folders by id to update a folder name
+// Validate the incoming body has a name field
+// Validate the id is a Mongo ObjectId
+// Catch duplicate key error code 11000 and respond with a helpful error message
 router.put('/:id', (req, res, next) => {
   const id = req.params.id;
-  const {title, content} = req.body;
-  const updatedNote = {
-    title: title, 
-    content: content, 
+  const {name} = req.body;
+  const updatedFolder = {
+    name: name
   };
-  if (!updatedNote.title) {
-    const err = new Error('Missing `title` in request body');
+  if (!updatedFolder.name) {
+    const err = new Error('Missing `name` in request body');
     err.status = 400;
     return next(err);
   }
-
-  return Note.findByIdAndUpdate(id, updatedNote)
+  return Folder.findByIdAndUpdate(id, updatedFolder)
     .then(results => {
       if (results){
         res.json(results);
@@ -128,12 +104,12 @@ router.put('/:id', (req, res, next) => {
       next(err);
     });
 });
-
-/* ========== DELETE/REMOVE A SINGLE ITEM ========== */
+// DELETE /folders by id which deletes the folder AND the related notes
+// Respond with a 204 status
 router.delete('/:id', (req, res, next) => {
 
   const id = req.params.id;
-  return Note.findByIdAndRemove(id)
+  return Folder.findByIdAndRemove(id)
     .then(()=>{
       res.status(204).end();
     });
