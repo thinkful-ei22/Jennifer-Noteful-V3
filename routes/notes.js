@@ -13,8 +13,8 @@ router.get('/', (req, res, next) => {
   let filter = {};
   
   if (searchTerm) {
-    filter.title = { $regex: searchTerm };
-    filter.content = {$regex: searchTerm};
+    filter.title = { $regex: searchTerm, $options: 'i' };
+    filter.content = {$regex: searchTerm, $options: 'i' };
     return Note.find({$or: [{title: filter.title}, {content: filter.content}]}).sort({ updatedAt: 'desc' })     
       .then(results => {
         return results;
