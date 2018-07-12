@@ -51,10 +51,11 @@ describe('notes tests', ()=>{
           expect(res).to.have.status(200);
           expect(res).to.be.json;
           expect(res.body).to.be.a('object');
-          expect(res.body).to.have.keys('id', 'title', 'content', 'createdAt', 'updatedAt');
+          expect(res.body).to.have.keys('id', 'title', 'content', 'createdAt', 'updatedAt', 'folderId');
           expect(res.body.id).to.equal(data.id);
           expect(res.body.title).to.equal(data.title);
           expect(res.body.content).to.equal(data.content);
+          expect(res.body.folderId).to.equal(`${data.folderId}`);
           expect(new Date(res.body.createdAt)).to.eql(data.createdAt);
           expect(new Date(res.body.updatedAt)).to.eql(data.updatedAt);
         });
@@ -67,7 +68,7 @@ describe('notes tests', ()=>{
         })
         .then(res => {
           expect(res).to.have.status(500);
-          expect(res.body.message).to.eq('Internal Server Error');
+          expect(res.body.message).to.eq('The `id` is not valid');
         });
     });
     it('should respond 404 for nonexistant id', ()=>{
@@ -92,12 +93,26 @@ describe('notes tests', ()=>{
           expect(res.body[0]).to.be.a('object');
         });
     });
+    it('should return a list of notes that match folder filter', ()=>{
+      const folderId = '111111111111111111111103';
+      return chai.request(app)
+        .get(`/api/notes?searchTerm=&${folderId}=`)
+        .then(res => {
+          const size = res.body.length;
+          expect(res).to.have.status(200);
+          expect(res).to.be.json;
+          expect(res.body).to.be.a('array');
+          expect(res.body).to.have.length(size);
+          expect(res.body[0]).to.be.a('object');
+        });
+    });
   });
   describe('POST /api/notes', ()=>{
     it('should return a new note when provided with valid data', ()=>{
       const newNote = {
         'title': 'This is a new note about cats',
-        'content': 'Blah blah blah, cats are ok, but I am allergic'
+        'content': 'Blah blah blah, cats are ok, but I am allergic',
+        'folderId': '111111111111111111111102'
       };
       let res;
       return chai.request(app)
@@ -109,13 +124,14 @@ describe('notes tests', ()=>{
           expect(res).to.have.header('location');
           expect(res).to.be.json;
           expect(res.body).to.be.a('object');
-          expect(res.body).to.have.keys('id','title','content', 'createdAt', 'updatedAt');
+          expect(res.body).to.have.keys('id','title','content', 'createdAt', 'updatedAt', 'folderId');
           return Note.findById(res.body.id);
         })
         .then(data =>{
           expect(res.body.id).to.equal(data.id);
           expect(res.body.title).to.equal(data.title);
           expect(res.body.content).to.equal(data.content);
+          expect(res.body.folderId).to.equal(`${data.folderId}`);
           expect(new Date(res.body.createdAt)).to.eql(data.createdAt);
           expect(new Date(res.body.updatedAt)).to.eql(data.updatedAt);
         });
@@ -125,7 +141,8 @@ describe('notes tests', ()=>{
     it('should update a note and return it when provided with valid data', ()=>{
       const updatedNote = {
         'title': 'This is a new note about lizards',
-        'content': 'Blah blah blah, cats are ok, but I am not allergic to lizzards'
+        'content': 'Blah blah blah, cats are ok, but I am not allergic to lizzards',
+        'folderId': '111111111111111111111102'
       };
       return Note
         .findOne()
@@ -139,12 +156,13 @@ describe('notes tests', ()=>{
           expect(res).to.have.status(200);
           expect(res).to.be.json;
           expect(res.body).to.be.a('object');
-          expect(res.body).to.have.keys('id', 'title', 'content', 'createdAt', 'updatedAt');
+          expect(res.body).to.have.keys('id', 'title', 'content', 'createdAt', 'updatedAt', 'folderId');
           return Note.findById(updatedNote.id)
             .then(data =>{
               expect(updatedNote.id).to.equal(data.id);
               expect(updatedNote.title).to.equal(data.title);
               expect(updatedNote.content).to.equal(data.content);
+              expect(updatedNote.folderId).to.equal(`${data.folderId}`);
             });
         });
     });

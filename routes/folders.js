@@ -26,23 +26,24 @@ router.get('/', (req, res, next) => {
 router.get('/:id', (req, res, next) => {
  
   const id = req.params.id;
+
   if(!(mongoose.Types.ObjectId.isValid(id))){
     const err = new Error('The `id` is not valid');
     err.status = 400;
     return next(err);
-  }
-  return Folder.findById(id)
-    .then(result => {
-      if (result) {
-        res.json(result);
-      } else {
-        next();
-      }
-    })
-    .catch(err => {
-      next(err);
-    });
-});
+  }else{
+    return Folder.findById(id)
+      .then(result => {
+        if (result) {
+          res.json(result);
+        } else {
+          next();
+        }
+      })
+      .catch(err => {
+        next(err);
+      });
+  }});
 // POST /folders to create a new folder
 // Validate the incoming body has a name field
 // Respond with a 201 status and location header

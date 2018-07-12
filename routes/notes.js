@@ -30,6 +30,27 @@ router.get('/', (req, res, next) => {
         next(err);
       });
   }
+  else{
+    const {folderId} = req.query;
+    let filter = {};
+    if (folderId) {
+      filter.folderId = { folderId };
+      return Note.find({folderId: folderId}).sort({ updatedAt: 'desc' })     
+        .then(results => {
+          return results;
+        })
+        .then(result => {
+          if(result){
+            res.json(result);
+          }else{
+            next();
+          }
+        })
+        .catch(err => {
+          next(err);
+        });
+    }
+  }
   return Note.find().sort({ updatedAt: 'desc' })     
     .then(results => {
       return results;
@@ -53,7 +74,7 @@ router.get('/:id', (req, res, next) => {
   const id = req.params.id;
   if(!(mongoose.Types.ObjectId.isValid(id))){
     const err = new Error('The `id` is not valid');
-    err.status = 400;
+    err.status = 500;
     return next(err);
   }
   return Note.findById(id)
@@ -71,13 +92,19 @@ router.get('/:id', (req, res, next) => {
 
 /* ========== POST/CREATE AN ITEM ========== */
 router.post('/', (req, res, next) => {
-  const {title, content} = req.body;
+  const {title, content, folderId} = req.body;
   const newNote = {
     title: title, 
-    content: content, 
+    content: content,
+    folderId: folderId 
   };
   if (!newNote.title) {
     const err = new Error('Missing `title` in request body');
+    err.status = 400;
+    return next(err);
+  }
+  if(!(mongoose.Types.ObjectId.isValid(folderId))){
+    const err = new Error('The `folderId` is not valid');
     err.status = 400;
     return next(err);
   }
@@ -101,17 +128,22 @@ router.post('/', (req, res, next) => {
 /* ========== PUT/UPDATE A SINGLE ITEM ========== */
 router.put('/:id', (req, res, next) => {
   const id = req.params.id;
-  const {title, content} = req.body;
+  const {title, content, folderId} = req.body;
   const updatedNote = {
     title: title, 
     content: content, 
+    folderId: folderId
   };
   if (!updatedNote.title) {
     const err = new Error('Missing `title` in request body');
     err.status = 400;
     return next(err);
+  } 
+  if(!(mongoose.Types.ObjectId.isValid(folderId))){
+    const err = new Error('The `folderId` is not valid');
+    err.status = 400;
+    return next(err);
   }
-
   return Note.findByIdAndUpdate(id, updatedNote)
     .then(results => {
       if (results){
