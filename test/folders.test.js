@@ -104,6 +104,19 @@ describe('folders tests', ()=>{
           expect(new Date(res.body.updatedAt)).to.eql(data.updatedAt);
         });
     });
+    it('should respond 400 if name missing', ()=>{
+      const noNameFolder = {
+      };
+      return chai.request(app).post('/api/folders')
+        .send(noNameFolder)
+        .catch(error => {
+          return error.response;
+        })
+        .then(res => {
+          expect(res).to.have.status(400);
+          expect(res.body.message).to.eq('Missing `name` in request body');
+        });
+    });
   });
   describe('PUT /api/folders/:id', ()=>{
     it('should update a folder and return it when provided with valid data', ()=>{

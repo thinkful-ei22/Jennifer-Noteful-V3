@@ -136,6 +136,37 @@ describe('notes tests', ()=>{
           expect(new Date(res.body.updatedAt)).to.eql(data.updatedAt);
         });
     });
+    it('should respond 400 if title missing', ()=>{
+      const noTitleNote = {
+        'content': 'this will not work because I do not have a title',
+        'folderId': '111111111111111111111102' 
+      };
+      return chai.request(app).post('/api/notes')
+        .send(noTitleNote)
+        .catch(error => {
+          return error.response;
+        })
+        .then(res => {
+          expect(res).to.have.status(400);
+          expect(res.body.message).to.eq('Missing `title` in request body');
+        });
+    });
+    it('should return a status of 400 is folderId not valid', ()=>{
+      const invalidFolderIdNote = {
+        'title': 'This is a new note about cats',
+        'content': 'Blah blah blah, cats are ok, but I am allergic',
+        'folderId': '123-456'
+      };
+      return chai.request(app).post('/api/notes/')
+        .send(invalidFolderIdNote)
+        .catch(error => {
+          return error.response;
+        })
+        .then(res => {
+          expect(res).to.have.status(400);
+          expect(res.body.message).to.eq('The `folderId` is not valid');
+        });
+    });
   });
   describe('PUT /api/notes/:id', ()=>{
     it('should update a note and return it when provided with valid data', ()=>{
@@ -164,6 +195,26 @@ describe('notes tests', ()=>{
               expect(updatedNote.content).to.equal(data.content);
               expect(updatedNote.folderId).to.equal(`${data.folderId}`);
             });
+        });
+    });
+    it('should respond with 500 given an invalidid', ()=>{
+      const invalidId = '123-456';
+      return chai.request(app).get(`/api/notes/${invalidId}`)
+        .catch(error => {
+          return error.response;
+        })
+        .then(res => {
+          expect(res).to.have.status(500);
+          expect(res.body.message).to.eq('The `id` is not valid');
+        });
+    });
+    it('should respond 404 for nonexistant id', ()=>{
+      return chai.request(app).get('/api/notes/DOESNOTEXIST')
+        .catch(error => {
+          return error.response;
+        })
+        .then(res => {
+          expect(res).to.have.status(404);
         });
     });
   });
