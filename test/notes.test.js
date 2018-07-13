@@ -7,6 +7,10 @@ const app = require('../server');
 const { TEST_MONGODB_URI } = require('../config');
 const Note = require('../models/notes');
 const seedNotes = require('../db/seed/notes');
+const Folder = require('../models/folders');
+const seedFolders = require('../db/seed/folders');
+const Tag = require('../models/tags');
+const seedTags = require('../db/seed/tags');
 const expect = chai.expect;
 
 chai.use(chaiHttp);
@@ -17,7 +21,12 @@ describe('notes tests', ()=>{
       .then(() => mongoose.connection.db.dropDatabase());
   });   
   beforeEach(function () {
-    return Note.insertMany(seedNotes);
+    const seedTheNotes = Note.insertMany(seedNotes);
+    const seedTheFolders = Folder.insertMany(seedFolders);
+    const seedTheTags = Tag.insertMany(seedTags);
+    return Promise.all([
+      seedTheNotes, seedTheTags, seedTheFolders
+    ]);
   });   
   afterEach(function () {
     return mongoose.connection.db.dropDatabase();
@@ -26,7 +35,7 @@ describe('notes tests', ()=>{
     return mongoose.disconnect();
   });
 
-  describe('GET all, GET by id, and GET with filter /api/notes/:id', ()=>{
+  describe('get requests', ()=>{
     it('should return a list of all notes', ()=>{
       return chai.request(app)
         .get('/api/notes')
@@ -55,7 +64,7 @@ describe('notes tests', ()=>{
           expect(res.body.id).to.equal(data.id);
           expect(res.body.title).to.equal(data.title);
           expect(res.body.content).to.equal(data.content);
-          expect(res.body.folderId.toString()).to.equal(data.folderId.toString());
+          expect(res.body.folderId.id).to.equal(data.folderId.toString());
           expect(new Date(res.body.createdAt)).to.eql(data.createdAt);
           expect(new Date(res.body.updatedAt)).to.eql(data.updatedAt);
         });
@@ -112,7 +121,8 @@ describe('notes tests', ()=>{
       const newNote = {
         'title': 'This is a new note about cats',
         'content': 'Blah blah blah, cats are ok, but I am allergic',
-        'folderId': '111111111111111111111102'
+        'folderId': '111111111111111111111102',
+        'tagId': ['222222222222222222222202', '222222222222222222222203']
       };
       let res;
       return chai.request(app)
@@ -155,7 +165,8 @@ describe('notes tests', ()=>{
       const invalidFolderIdNote = {
         'title': 'This is a new note about cats',
         'content': 'Blah blah blah, cats are ok, but I am allergic',
-        'folderId': '123-456'
+        'folderId': '123-456',
+        'tags': ['222222222222222222222202', '222222222222222222222203']
       };
       return chai.request(app).post('/api/notes/')
         .send(invalidFolderIdNote)
@@ -167,13 +178,31 @@ describe('notes tests', ()=>{
           expect(res.body.message).to.eq('The `folderId` is not valid');
         });
     });
+    it('should return a status of 400 if tagId not valid', ()=>{
+      const invalidTagIdNote = {
+        'title': 'This is a new note about cats',
+        'content': 'Blah blah blah, cats are ok, but I am allergic',
+        'folderId': '111111111111111111111102',
+        'tagId': ['nope']
+      };
+      return chai.request(app).post('/api/notes/')
+        .send(invalidTagIdNote)
+        .catch(error => {
+          return error.response;
+        })
+        .then(res => {
+          expect(res).to.have.status(400);
+          expect(res.body.message).to.eq('The `tagId` is not valid');
+        });
+    });
   });
   describe('PUT /api/notes/:id', ()=>{
     it('should update a note and return it when provided with valid data', ()=>{
       const updatedNote = {
         'title': 'This is a new note about lizards',
         'content': 'Blah blah blah, cats are ok, but I am not allergic to lizzards',
-        'folderId': '111111111111111111111102'
+        'folderId': '111111111111111111111102',
+        'tagId': ['222222222222222222222202', '222222222222222222222203']
       };
       return Note
         .findOne()
@@ -187,13 +216,13 @@ describe('notes tests', ()=>{
           expect(res).to.have.status(200);
           expect(res).to.be.json;
           expect(res.body).to.be.a('object');
-          expect(res.body).to.have.keys('id', 'title', 'content', 'createdAt', 'updatedAt', 'folderId');
+          expect(res.body).to.have.keys('id', 'title', 'content', 'createdAt', 'updatedAt', 'folderId', 'tags');
           return Note.findById(updatedNote.id)
             .then(data =>{
               expect(updatedNote.id).to.equal(data.id);
               expect(updatedNote.title).to.equal(data.title);
               expect(updatedNote.content).to.equal(data.content);
-              expect(res.body.folderId.toString()).to.equal(data.folderId.toString());
+              expect(updatedNote.folderId.toString()).to.equal(data.folderId.toString());
             });
         });
     });
@@ -215,6 +244,40 @@ describe('notes tests', ()=>{
         })
         .then(res => {
           expect(res).to.have.status(404);
+        });
+    });
+    it('should return a status of 400 is folderId not valid', ()=>{
+      const invalidFolderIdNote = {
+        'title': 'This is a new note about cats',
+        'content': 'Blah blah blah, cats are ok, but I am allergic',
+        'folderId': '123-456',
+        'tagId': ['222222222222222222222202', '222222222222222222222203']
+      };
+      return chai.request(app).put('/api/notes/:id')
+        .send(invalidFolderIdNote)
+        .catch(error => {
+          return error.response;
+        })
+        .then(res => {
+          expect(res).to.have.status(400);
+          expect(res.body.message).to.eq('The `folderId` is not valid');
+        });
+    });
+    it('should return a status of 400 if tagId not valid', ()=>{
+      const invalidTagIdNote = {
+        'title': 'This is a new note about cats',
+        'content': 'Blah blah blah, cats are ok, but I am allergic',
+        'folderId': '111111111111111111111102',
+        'tagId': ['nope']
+      };
+      return chai.request(app).put('/api/notes/:id')
+        .send(invalidTagIdNote)
+        .catch(error => {
+          return error.response;
+        })
+        .then(res => {
+          expect(res).to.have.status(400);
+          expect(res.body.message).to.eq('The `tagId` is not valid');
         });
     });
   });

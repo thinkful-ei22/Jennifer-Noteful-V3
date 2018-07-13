@@ -99,13 +99,19 @@ router.put('/:id', (req, res, next)=>{
 //delete a tag
 router.delete('/:id', (req, res, next) => {
   const id = req.params.id;
-  return Tag.findByIdAndRemove(id)
-    .then(()=>{})//should this come before the return?
-  //loop through notes (updateMany()? forEach?)
-  //check if tags array contains id
-  //remove id from tags array
+  if(!mongoose.Types.ObjectId.isValid(id)){
+    const err = new Error('The `id` is not valid');
+    err.status = 400;
+    return next(err);
+  }
+  const removeFromTags= Tag.findByIdAndRemove(id);
+  const removeTagFromNotes = Note.updateMany({tags:id}, {$pull: {tags:id}});
+  Promise.all([removeFromTags, removeTagFromNotes])
     .then(()=>{
-      res.status(204).end();
+      res.sendStatus(204);
+    })
+    .catch(err => {
+      next(err);
     });
 });
 

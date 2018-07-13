@@ -16,7 +16,7 @@ noteSchema.set('toObject', {
   versionKey: false,  // remove `__v` version key
   transform: (doc, ret) => {
     delete ret._id;
-    ret.folderId = doc.folderId.toString(); // delete `_id`
+    ret.folderId = doc.folderId; // delete `_id`
   }
 });
 
