@@ -169,7 +169,7 @@ router.put('/:id', (req, res, next) => {
     err.status = 400;
     return next(err);
   } 
-  if(!(mongoose.Types.ObjectId.isValid(folderId))){
+  if(folderId && !(mongoose.Types.ObjectId.isValid(folderId))){
     const err = new Error('The `folderId` is not valid');
     err.status = 400;
     return next(err);
