@@ -105,12 +105,12 @@ router.get('/:id', (req, res, next) => {
 
 /* ========== POST/CREATE AN ITEM ========== */
 router.post('/', (req, res, next) => {
-  const {title, content, folderId, tagId} = req.body;
+  const {title, content, folderId, tags} = req.body;
   const newNote = {
     title: title, 
     content: content,
     folderId: folderId,
-    tags: tagId
+    tags: tags
   };
   if (!newNote.title) {
     const err = new Error('Missing `title` in request body');
@@ -120,7 +120,7 @@ router.post('/', (req, res, next) => {
   if(!folderId){
     newNote.folderId = null;
   }
-  if(!tagId){
+  if(!tags){
     newNote.tags= [];
   }
   if(folderId && !(mongoose.Types.ObjectId.isValid(folderId))){
@@ -128,8 +128,8 @@ router.post('/', (req, res, next) => {
     err.status = 400;
     return next(err);
   }
-  if(tagId){
-    tagId.forEach(tag => {
+  if(tags){
+    tags.forEach(tag => {
       if(!mongoose.Types.ObjectId.isValid(tag)){
         const err = new Error('The `tagId` is not valid');
         err.status = 400;
@@ -157,12 +157,12 @@ router.post('/', (req, res, next) => {
 /* ========== PUT/UPDATE A SINGLE ITEM ========== */
 router.put('/:id', (req, res, next) => {
   const id = req.params.id;
-  const {title, content, folderId, tagId} = req.body;
+  const {title, content, folderId, tags} = req.body;
   const updatedNote = {
     title: title, 
     content: content, 
     folderId: folderId,
-    tags: tagId
+    tags: tags
   };
   if (!updatedNote.title) {
     const err = new Error('Missing `title` in request body');
@@ -174,8 +174,8 @@ router.put('/:id', (req, res, next) => {
     err.status = 400;
     return next(err);
   }
-  if(tagId){
-    tagId.forEach(tag => {
+  if(tags){
+    tags.forEach(tag => {
       if(!mongoose.Types.ObjectId.isValid(tag)){
         const err = new Error('The `tagId` is not valid');
         err.status = 400;
@@ -195,7 +195,7 @@ router.put('/:id', (req, res, next) => {
     })
     .catch(err => {
       if (err.code === 11000) {
-        err = new Error('The folder name already exists');
+        err = new Error('The note name already exists');
         err.status = 400;
       }
       next(err);
