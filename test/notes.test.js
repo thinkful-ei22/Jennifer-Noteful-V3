@@ -122,7 +122,7 @@ describe('notes tests', ()=>{
         'title': 'This is a new note about cats',
         'content': 'Blah blah blah, cats are ok, but I am allergic',
         'folderId': '111111111111111111111102',
-        'tagId': ['222222222222222222222202', '222222222222222222222203']
+        'tags': ['222222222222222222222202', '222222222222222222222203']
       };
       let res;
       return chai.request(app)
@@ -183,7 +183,7 @@ describe('notes tests', ()=>{
         'title': 'This is a new note about cats',
         'content': 'Blah blah blah, cats are ok, but I am allergic',
         'folderId': '111111111111111111111102',
-        'tagId': ['nope']
+        'tags': ['nope']
       };
       return chai.request(app).post('/api/notes/')
         .send(invalidTagIdNote)
@@ -202,7 +202,7 @@ describe('notes tests', ()=>{
         'title': 'This is a new note about lizards',
         'content': 'Blah blah blah, cats are ok, but I am not allergic to lizzards',
         'folderId': '111111111111111111111102',
-        'tagId': ['222222222222222222222202', '222222222222222222222203']
+        'tags': ['222222222222222222222202', '222222222222222222222203']
       };
       return Note
         .findOne()
@@ -251,7 +251,7 @@ describe('notes tests', ()=>{
         'title': 'This is a new note about cats',
         'content': 'Blah blah blah, cats are ok, but I am allergic',
         'folderId': '123-456',
-        'tagId': ['222222222222222222222202', '222222222222222222222203']
+        'tags': ['222222222222222222222202', '222222222222222222222203']
       };
       return chai.request(app).put('/api/notes/:id')
         .send(invalidFolderIdNote)
@@ -268,7 +268,7 @@ describe('notes tests', ()=>{
         'title': 'This is a new note about cats',
         'content': 'Blah blah blah, cats are ok, but I am allergic',
         'folderId': '111111111111111111111102',
-        'tagId': ['nope']
+        'tags': ['nope']
       };
       return chai.request(app).put('/api/notes/:id')
         .send(invalidTagIdNote)
