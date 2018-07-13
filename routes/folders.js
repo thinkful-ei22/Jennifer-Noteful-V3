@@ -92,7 +92,7 @@ router.put('/:id', (req, res, next) => {
   return Folder.findByIdAndUpdate(id, updatedFolder)
     .then(results => {
       if (results){
-        res.json(results);
+        res.status(200).json(results);
       } else {
         next();
       }

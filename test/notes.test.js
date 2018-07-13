@@ -51,11 +51,11 @@ describe('notes tests', ()=>{
           expect(res).to.have.status(200);
           expect(res).to.be.json;
           expect(res.body).to.be.a('object');
-          expect(res.body).to.have.keys('id', 'title', 'content', 'createdAt', 'updatedAt', 'folderId');
+          expect(res.body).to.have.keys('id', 'title', 'content', 'createdAt', 'updatedAt', 'folderId', 'tags');
           expect(res.body.id).to.equal(data.id);
           expect(res.body.title).to.equal(data.title);
           expect(res.body.content).to.equal(data.content);
-          expect(res.body.folderId).to.equal(`${data.folderId}`);
+          expect(res.body.folderId.toString()).to.equal(data.folderId.toString());
           expect(new Date(res.body.createdAt)).to.eql(data.createdAt);
           expect(new Date(res.body.updatedAt)).to.eql(data.updatedAt);
         });
@@ -124,14 +124,14 @@ describe('notes tests', ()=>{
           expect(res).to.have.header('location');
           expect(res).to.be.json;
           expect(res.body).to.be.a('object');
-          expect(res.body).to.have.keys('id','title','content', 'createdAt', 'updatedAt', 'folderId');
+          expect(res.body).to.have.keys('id','title','content', 'createdAt', 'updatedAt', 'folderId', 'tags');
           return Note.findById(res.body.id);
         })
         .then(data =>{
           expect(res.body.id).to.equal(data.id);
           expect(res.body.title).to.equal(data.title);
           expect(res.body.content).to.equal(data.content);
-          expect(res.body.folderId).to.equal(`${data.folderId}`);
+          expect(res.body.folderId.toString()).to.equal(data.folderId.toString());
           expect(new Date(res.body.createdAt)).to.eql(data.createdAt);
           expect(new Date(res.body.updatedAt)).to.eql(data.updatedAt);
         });
@@ -193,7 +193,7 @@ describe('notes tests', ()=>{
               expect(updatedNote.id).to.equal(data.id);
               expect(updatedNote.title).to.equal(data.title);
               expect(updatedNote.content).to.equal(data.content);
-              expect(updatedNote.folderId).to.equal(`${data.folderId}`);
+              expect(res.body.folderId.toString()).to.equal(data.folderId.toString());
             });
         });
     });

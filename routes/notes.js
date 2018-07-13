@@ -35,10 +35,7 @@ router.get('/', (req, res, next) => {
     let filter = {};
     if (folderId) {
       filter.folderId = { folderId };
-      return Note.find({folderId: folderId}).sort({ updatedAt: 'desc' })     
-        .then(results => {
-          return results;
-        })
+      return Note.find({folderId: folderId}).sort({ updatedAt: 'desc' })    
         .then(result => {
           if(result){
             res.json(result);
@@ -103,7 +100,10 @@ router.post('/', (req, res, next) => {
     err.status = 400;
     return next(err);
   }
-  if(!(mongoose.Types.ObjectId.isValid(folderId))){
+  if(!folderId){
+    newNote.folderId = null;
+  }
+  if(folderId && !(mongoose.Types.ObjectId.isValid(folderId))){
     const err = new Error('The `folderId` is not valid');
     err.status = 400;
     return next(err);
@@ -147,7 +147,7 @@ router.put('/:id', (req, res, next) => {
   return Note.findByIdAndUpdate(id, updatedNote)
     .then(results => {
       if (results){
-        res.json(results);
+        res.status(200).json(results);
       } else {
         next();
       }
